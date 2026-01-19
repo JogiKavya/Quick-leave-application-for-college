@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - QuickLeaveApp</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    /* Optional small styling improvement */
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      color: #333;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Register</h2>
+    <form id="registerForm">
+      <input type="text" name="name" placeholder="Full Name" required>
+
+      <input type="email" name="email" placeholder="Email" required>
+
+      <input type="password" name="password" placeholder="Password" required>
+
+      <label for="role">Select Role:</label>
+      <select name="role" id="role" required>
+        <option value="">-- Select Role --</option>
+        <option value="student">Student</option>
+        <option value="coordinator">Coordinator</option>
+        <option value="hod">HOD</option>
+        <option value="principal">Principal</option>
+        <option value="warden">Warden</option>
+      </select>
+
+      <div id="studentFields" class="hidden">
+        <input type="text" name="rollNo" placeholder="Roll Number">
+        <input type="text" name="parentNo" placeholder="Parent Number">
+        <label>
+          Hosteller?
+          <input type="checkbox" name="hostel" id="hostel">
+        </label>
+        <input type="text" name="wardenName" id="wardenField" class="hidden" placeholder="Warden Name">
+      </div>
+
+      <button type="submit">Register</button>
+    </form>
+
+    <p>Already registered? <a href="login.html">Login here</a></p>
+
+    <div id="notification" class="hidden"></div>
+  </div>
+
+  <script>
+    const roleSelect = document.getElementById('role');
+    const studentFields = document.getElementById('studentFields');
+    const wardenField = document.getElementById('wardenField');
+    const hostelCheckbox = document.getElementById('hostel');
+
+    // Show/hide student fields
+    roleSelect.addEventListener('change', () => {
+      studentFields.style.display = roleSelect.value === 'student' ? 'block' : 'none';
+    });
+
+    // Show/hide warden name if hosteller
+    hostelCheckbox.addEventListener('change', function() {
+      wardenField.classList.toggle('hidden', !this.checked);
+    });
+
+    // Handle registration
+    document.getElementById('registerForm').onsubmit = async function(e) {
+      e.preventDefault();
+      const formData = Object.fromEntries(new FormData(this));
+
+      const res = await fetch('/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        showNotification('Registered successfully! Redirecting...', false);
+        setTimeout(() => (window.location.href = 'login.html'), 2000);
+      } else {
+        showNotification('Error: ' + (data.error || 'Unknown'), true);
+      }
+    };
+
+    // Notification helper
+    function showNotification(message, isError = false) {
+      const notif = document.getElementById('notification');
+      notif.innerText = message;
+      notif.style.display = 'block';
+      notif.style.color = isError ? 'red' : 'green';
+      setTimeout(() => (notif.style.display = 'none'), 3000);
+    }
+  </script>
+</body>
+</html>

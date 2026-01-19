@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My Leave Status</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="container">
+  <h2>My Leave Status</h2>
+  <table border="1" id="leaveTable">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Leave Type</th>
+        <th>Reason</th>
+        <th>From</th>
+        <th>To</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Data will be filled by JS -->
+    </tbody>
+  </table>
+
+  <br>
+  <a href="dashboard.html">Back</a>
+</div>
+
+<script>
+async function loadLeaves() {
+    const email = localStorage.getItem("userEmail");
+    if (!email) {
+        alert("Login required!");
+        window.location.href = "login.html";
+        return;
+    }
+
+    const res = await fetch(`/leave/mystatus/${email}`);
+    const leaves = await res.json();
+
+    const tbody = document.querySelector("#leaveTable tbody");
+    tbody.innerHTML = ""; // clear existing rows
+
+    leaves.forEach(leave => {
+    const fromDate = new Date(leave.date_from).toLocaleDateString();
+    const toDate = new Date(leave.date_to).toLocaleDateString();
+    const status = leave.status.charAt(0).toUpperCase() + leave.status.slice(1); // capitalize
+
+    const row = document.createElement("tr");
+    row.innerHTML = `
+        <td>${leave.id}</td>
+        <td>${leave.leaveType}</td>
+        <td>${leave.reason || "-"}</td>
+        <td>${fromDate}</td>
+        <td>${toDate}</td>
+        <td>${status}</td>
+    `;
+    tbody.appendChild(row);
+});
+}
+// Load leaves on page load
+window.onload = loadLeaves;
+</script>
+</body>
+</html>

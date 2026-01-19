@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Coordinator Dashboard</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 10px 5px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .btn:hover { background-color: #0056b3; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+        th { background-color: #f2f2f2; }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Coordinator Dashboard</h2>
+
+
+    <div>
+        <button class="btn" id="btnApplyLeave">Apply Leave</button>
+        <button class="btn" id="btnMyStatus">My Leave Status</button>
+        <button class="btn" id="btnPendingLeaves">Student Pending Leaves</button>
+        <button class="btn" id="btnLogout">Logout</button>
+    </div>
+
+    <!-- Sections -->
+    <div id="sectionApplyLeave" class="hidden">
+        <iframe src="leave.html" width="100%" height="500px" style="border:none;"></iframe>
+    </div>
+
+    <div id="sectionMyStatus" class="hidden">
+        <iframe src="mystatus.html" width="100%" height="500px" style="border:none;"></iframe>
+    </div>
+
+    <div id="sectionPendingLeaves" class="hidden">
+        <h3>Pending Student Leaves</h3>
+        <table id="pendingTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Student Email</th>
+                    <th>Leave Type</th>
+                    <th>Reason</th>
+                    <th>From</th>
+                    <th>To</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td colspan="8">Loading...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+const userEmail = localStorage.getItem("userEmail");
+const userRole = localStorage.getItem("userRole");
+
+if (!userEmail || userRole !== "coordinator") {
+    alert("Access denied! Please login as coordinator.");
+    window.location.href = "login.html";
+}
+
+// Buttons
+const btnApplyLeave = document.getElementById("btnApplyLeave");
+const btnMyStatus = document.getElementById("btnMyStatus");
+const btnPendingLeaves = document.getElementById("btnPendingLeaves");
+const btnLogout = document.getElementById("btnLogout");
+
+// Sections
+const sectionApplyLeave = document.getElementById("sectionApplyLeave");
+const sectionMyStatus = document.getElementById("sectionMyStatus");
+const sectionPendingLeaves = document.getElementById("sectionPendingLeaves");
+
+// Show only the clicked section
+function hideAllSections() {
+    sectionApplyLeave.classList.add("hidden");
+    sectionMyStatus.classList.add("hidden");
+    sectionPendingLeaves.classList.add("hidden");
+}
+
+btnApplyLeave.addEventListener("click", () => {
+    hideAllSections();
+    sectionApplyLeave.classList.remove("hidden");
+});
+
+btnMyStatus.addEventListener("click", () => {
+    hideAllSections();
+    sectionMyStatus.classList.remove("hidden");
+});
+
+btnPendingLeaves.addEventListener("click", () => {
+    hideAllSections();
+    sectionPendingLeaves.classList.remove("hidden");
+    fetchPendingLeaves();
+});
+
+btnLogout.addEventListener("click", () => {
+    localStorage.clear();
+    window.location.href = "login.html";
+});
+
+// Fetch pending leaves
+async function fetchPendingLeaves() {
+    const tableBody = document.querySelector("#pendingTable tbody");
+    tableBody.innerHTML = "<tr><td colspan='8'>Loading...</td></tr>";
+
+    try {
+        const res = await fetch("/leave/pending"); // backend should return pending leaves
+        const leaves = await res.json();
+
+        if (leaves.length === 0) {
+            tableBody.innerHTML = "<tr><td colspan='8'>No pending leaves</td></tr>";
+            return;
+        }
+
+        tableBody.innerHTML = "";
+        leaves.forEach(leave => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${leave.id}</td>
+                <td>${leave.email}</td>
+                <td>${leave.leaveType}</td>
+                <td>${leave.reason || "-"}</td>
+                <td>${new Date(leave.date_from).toLocaleDateString()}</td>
+                <td>${new Date(leave.date_to).toLocaleDateString()}</td>
+                <td>${leave.status}</td>
+                <td>
+                    ${leave.status === "pending" 
+                        ? `<button class="btn btn-accept" onclick="updateLeave(${leave.id}, 'approved')">Accept</button>
+                           <button class="btn btn-reject" onclick="updateLeave(${leave.id}, 'rejected')">Reject</button>`
+                        : "-"
+                    }
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
+    } catch (err) {
+        console.error(err);
+        tableBody.innerHTML = "<tr><td colspan='8'>Error loading leaves</td></tr>";
+    }
+}
+
+// Approve/Reject leave
+async function updateLeave(id, action) {
+    try {
+        const res = await fetch(`/leave/update/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: action })
+        });
+
+        const data = await res.json();
+        alert(data.message);
+        fetchPendingLeaves();
+    } catch (err) {
+        console.error(err);
+        alert("Error updating leave");
+    }
+}
+
+
+window.addEventListener("DOMContentLoaded", () => {
+    if(userRole === "coordinator") {
+        hideAllSections();
+        sectionPendingLeaves.classList.remove("hidden");
+        fetchPendingLeaves();
+    }
+});
+
+</script>
+
+</body>
+</html>

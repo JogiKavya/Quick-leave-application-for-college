@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>HOD Panel</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<div class="container">
+    <h2>HOD Dashboard</h2>
+
+    <a href="leave.html" class="btn">Apply Leave</a>
+    <a href="mystatus.html" class="btn">My Leave Status</a>
+    <a href="pending-hod.html" class="btn">Coordinator Accepted Leaves</a>
+
+    <button onclick="logout()" class="btn logout">Logout</button>
+</div>
+
+<script>
+function logout() {
+    localStorage.clear();
+    window.location.href = "login.html";
+}
+</script>
+
+</body>
+</html>

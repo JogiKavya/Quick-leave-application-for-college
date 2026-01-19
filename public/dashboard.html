@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Dashboard</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<div class="container">
+    <h2>Student Dashboard</h2>
+
+    <button class="btn" onclick="location.href='leave.html'">Apply Leave</button>
+<button class="btn" onclick="location.href='mystatus.html'">My Leave Status</button>
+
+
+    <button onclick="logout()" class="btn logout">Logout</button>
+</div>
+
+<script>
+function logout() {
+    localStorage.clear();
+    window.location.href = "login.html";
+}
+</script>
+
+</body>
+</html>

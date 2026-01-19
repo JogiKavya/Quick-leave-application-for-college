@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Apply Leave</title>
+  <link rel="stylesheet" href="css/style.css">
+
+  <style>
+    #reasonLabel, #reasonField { display: none; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Apply Leave</h2>
+
+  <form id="leaveForm">
+    <label>Leave Type</label>
+    <select id="leaveType" required>
+      <option value="">--Select--</option>
+      <option>Sick Leave</option>
+      <option>Going Home</option>
+      <option>Others</option>
+    </select>
+
+    <label id="reasonLabel">Reason</label>
+    <input type="text" id="reasonField">
+
+    <label>Parent/Guardian Phone</label>
+    <input type="text" id="parentNo" required>
+
+    <label>Hostel</label>
+    <select id="hostel">
+      <option value="0">Day Scholar</option>
+      <option value="1">Hosteller</option>
+    </select>
+
+    <label>Date From</label>
+    <input type="date" id="dateFrom" required>
+
+    <label>Date To</label>
+    <input type="date" id="dateTo" required>
+
+    <label>Branch</label>
+    <select id="branch" required>
+      <option value="">--Select--</option>
+      <option>CSE</option>
+      <option>ECE</option>
+      <option>EEE</option>
+      <option>CIVIL</option>
+      <option>MECH</option>
+    </select>
+
+    <label>Year</label>
+    <select id="year" required>
+      <option value="">--Select--</option>
+      <option>1</option>
+      <option>2</option>
+      <option>3</option>
+      <option>4</option>
+    </select>
+
+    <button type="submit" class="btn">Apply Leave</button>
+  </form>
+
+  <br>
+  <a href="dashboard.html">Back</a>
+</div>
+
+<script>
+  // Show/Hide Reason for "Others"
+  document.getElementById("leaveType").addEventListener("change", function () {
+    const reasonInput = document.getElementById("reasonField");
+    const reasonLabel = document.getElementById("reasonLabel");
+
+    if (this.value === "Others") {
+      reasonInput.style.display = "block";
+      reasonLabel.style.display = "block";
+      reasonInput.required = true;
+    } else {
+      reasonInput.style.display = "none";
+      reasonLabel.style.display = "none";
+      reasonInput.required = false;
+      reasonInput.value = "";
+    }
+  });
+
+  // Submit Form
+  document.getElementById("leaveForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const email = localStorage.getItem("userEmail");
+    const student_id = localStorage.getItem("studentId") || 1; // fallback for testing
+
+    if (!email) {
+      alert("Login required!");
+      window.location.href = "login.html";
+      return;
+    }
+
+    const data = {
+      student_id: student_id,
+      email: email,
+      leaveType: document.getElementById("leaveType").value,
+      reason: document.getElementById("reasonField").value,
+      parentNo: document.getElementById("parentNo").value,
+      hostel: document.getElementById("hostel").value,
+      date_from: document.getElementById("dateFrom").value,
+      date_to: document.getElementById("dateTo").value,
+      branch: document.getElementById("branch").value,
+      year: document.getElementById("year").value
+    };
+
+    try {
+      const res = await fetch("/leave/apply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      const result = await res.json();
+      alert(result.message);
+    } catch (err) {
+      console.error(err);
+      alert("Error submitting leave!");
+    }
+  });
+</script>
+
+</body>
+</html>

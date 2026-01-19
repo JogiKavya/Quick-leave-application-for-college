@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>QuickLeaveApp - Login</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="container">
+    <h2>Login</h2>
+
+    <form id="loginForm">
+        <label>Email</label>
+        <input type="email" id="email" required>
+
+        <label>Password</label>
+        <input type="password" id="password" required>
+
+        <label>Role</label>
+        <select id="role" required>
+            <option value="">--Select Role--</option>
+            <option value="student">Student</option>
+            <option value="coordinator">Coordinator</option>
+            <option value="hod">HOD</option>
+        </select>
+
+        <button type="submit" class="btn">Login</button>
+    </form>
+</div>
+
+<script>
+document.getElementById("loginForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    const role = document.getElementById("role").value;
+
+    const res = await fetch("/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, role })
+    });
+
+    const result = await res.json();
+
+    if (res.status === 200) {
+        alert(result.message);
+        localStorage.setItem("userEmail", result.user.email);
+        localStorage.setItem("userRole", result.user.role);
+        localStorage.setItem("userId", result.user.id);
+
+        // Redirect based on role
+        if(role === "student") window.location.href = "dashboard.html";
+        else if(role === "teacher") window.location.href = "teacher_dashboard.html";
+        else if(role === "coordinator") window.location.href = "coordinator_dashboard.html";
+        else if(role === "hod") window.location.href = "hod_dashboard.html";
+
+    } else {
+        alert(result.message);
+    }
+});
+</script>
+
+</body>
+</html>
